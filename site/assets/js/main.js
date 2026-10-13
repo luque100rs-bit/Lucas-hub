@@ -1,5 +1,6 @@
 /* BL Escadas — interações e animações.
-   Sem dependências: tudo com IntersectionObserver, requestAnimationFrame e CSS. */
+   GSAP (abertura, títulos e efeitos de rolagem) + Lenis (rolagem suave).
+   Se as bibliotecas não carregarem, tudo continua funcionando com CSS e IntersectionObserver. */
 (() => {
   'use strict';
 
@@ -10,6 +11,13 @@
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const hasLoader = document.documentElement.classList.contains('has-loader');
   const T0 = hasLoader ? 1.75 : 0; // segundos até a cortina de abertura terminar
+  const G = Boolean(window.gsap && window.ScrollTrigger && window.SplitText) && !reduceMotion;
+  if (!G) document.documentElement.classList.remove('gsap-on');
+  let lenis = null;
+  const lockScroll = (lock) => {
+    document.body.classList.toggle('is-locked', lock);
+    if (lenis) lock ? lenis.stop() : lenis.start();
+  };
   const waUrl = (text) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 
   /* Links de WhatsApp já com mensagem inicial */
@@ -22,21 +30,26 @@
     const title = $('[data-split]');
     let delay = T0 + 0.55;
     if (title && !reduceMotion) {
-      const words = title.textContent.trim().split(/\s+/);
-      title.setAttribute('aria-label', title.textContent.trim());
+      // quebra em palavras mantendo o <em> do título
+      const pieces = [];
+      [...title.childNodes].forEach((node) => {
+        if (node.nodeType === 3) node.textContent.split(/\s+/).filter(Boolean).forEach((w) => pieces.push(document.createTextNode(w)));
+        else pieces.push(node.cloneNode(true));
+      });
+      title.setAttribute('aria-label', title.textContent.trim().replace(/\s+/g, ' '));
       title.textContent = '';
-      words.forEach((w, i) => {
+      pieces.forEach((piece, i) => {
         const outer = document.createElement('span');
         outer.className = 'word';
         outer.setAttribute('aria-hidden', 'true');
         const inner = document.createElement('span');
-        inner.textContent = w;
+        inner.appendChild(piece);
         inner.style.animationDelay = `${(delay + i * 0.07).toFixed(2)}s`;
         outer.appendChild(inner);
         title.appendChild(outer);
-        if (i < words.length - 1) title.appendChild(document.createTextNode(' '));
+        if (i < pieces.length - 1) title.appendChild(document.createTextNode(' '));
       });
-      delay += words.length * 0.07;
+      delay += pieces.length * 0.07;
     }
     const intro = $$('[data-intro]');
     intro.forEach((el) => {
@@ -84,7 +97,7 @@
         $$('.menu__nav a', menu).forEach((a) => { a.style.transitionDelay = '0s'; });
         setTimeout(() => { if (!menu.classList.contains('is-open')) menu.hidden = true; }, 400);
       }
-      document.body.classList.toggle('is-locked', open);
+      lockScroll(open);
       toggles.forEach((t) => {
         t.setAttribute('aria-expanded', String(open));
         t.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
@@ -146,19 +159,13 @@
     update();
   }
 
-  /* Parallax leve na foto do topo e progresso da linha do "Como funciona" */
+  /* Progresso da linha do "Como funciona" */
   function initScrollEffects() {
-    const heroImg = $('[data-parallax]');
     const steps = $('#steps');
     const rail = $('.steps__rail span', steps);
     const stepItems = $$('.step', steps);
-    const parallaxOn = () => !reduceMotion && window.innerWidth > 760;
 
     const frame = () => {
-      if (heroImg && parallaxOn()) {
-        const y = Math.min(window.scrollY, window.innerHeight);
-        heroImg.style.transform = `translate3d(0, ${(y * Number(heroImg.dataset.parallax || 0.08)).toFixed(1)}px, 0)`;
-      }
       if (steps) {
         const r = steps.getBoundingClientRect();
         const start = window.innerHeight * 0.8;
@@ -175,11 +182,6 @@
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
-    // a animação de entrada da foto usa transform; o parallax só assume depois dela
-    setTimeout(() => {
-      if (heroImg && parallaxOn()) heroImg.style.animation = 'none';
-      frame();
-    }, reduceMotion ? 0 : (T0 + 2.8) * 1000);
     frame();
   }
 
@@ -307,12 +309,12 @@
       lb.hidden = false;
       show(i);
       requestAnimationFrame(() => lb.classList.add('is-open'));
-      document.body.classList.add('is-locked');
+      lockScroll(true);
       $('#lb-close').focus();
     };
     const close = () => {
       lb.classList.remove('is-open');
-      document.body.classList.remove('is-locked');
+      lockScroll(false);
       setTimeout(() => { lb.hidden = true; }, reduceMotion ? 0 : 350);
       if (lastFocus) lastFocus.focus({ preventScroll: true });
     };
@@ -346,6 +348,77 @@
     });
   }
 
+  /* Vídeo do topo: toca uma vez quando a foto se abre e para no último quadro */
+  const heroVideo = $('#hero-video');
+  function playHeroVideo() {
+    if (!heroVideo || reduceMotion) return;
+    heroVideo.currentTime = 0;
+    const p = heroVideo.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+
+  /* Rolagem suave */
+  function initLenis() {
+    if (!G || !window.Lenis) return;
+    lenis = new window.Lenis({ duration: 1.15, smoothWheel: true, anchors: { offset: -90 } });
+    lenis.on('scroll', window.ScrollTrigger.update);
+    window.gsap.ticker.add((time) => lenis.raf(time * 1000));
+    window.gsap.ticker.lagSmoothing(0);
+  }
+
+  /* Abertura do topo com GSAP */
+  function initGsapIntro() {
+    const { gsap, SplitText } = window;
+    const title = $('#hero-title');
+    const split = SplitText.create(title, { type: 'words,chars', mask: 'words', maskClass: 'split-mask' });
+    title.classList.add('is-split');
+
+    const show = { opacity: 1, y: 0 };
+    const tl = gsap.timeline({ delay: T0, defaults: { ease: 'expo.out' } });
+    tl.fromTo('.hero__card', { y: 60, scale: 0.94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 1.4, clearProps: 'transform' }, 0)
+      .fromTo('.hero__media', { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.7, ease: 'expo.inOut' }, 0.1)
+      .fromTo(heroVideo, { scale: 1.3 }, { scale: 1, duration: 2.6, onStart: playHeroVideo }, 0.1)
+      .fromTo('.hero__nav', { opacity: 0, y: -18 }, { ...show, duration: 1 }, 0.55)
+      .fromTo('.hero .eyebrow', { opacity: 0, y: 16 }, { ...show, duration: 1 }, 0.7)
+      .from(split.chars, { yPercent: 115, rotate: 6, duration: 1.15, stagger: 0.018 }, 0.75)
+      .fromTo(['.hero__lead', '.hero__actions'], { opacity: 0, y: 26 }, { ...show, duration: 1.1, stagger: 0.12 }, 1.35)
+      .fromTo(['.hero__scroll', '.hero__meta'], { opacity: 0, y: 14 }, { ...show, duration: 1, stagger: 0.1 }, 1.7);
+  }
+
+  /* Efeitos ligados à rolagem */
+  function initGsapScroll() {
+    const { gsap, ScrollTrigger, SplitText } = window;
+    gsap.registerPlugin(ScrollTrigger, SplitText);
+
+    // topo: o vídeo desce mais devagar e o texto sobe e some enquanto a página rola
+    const scrollHero = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 };
+    gsap.to('.hero__media', { yPercent: 14, ease: 'none', scrollTrigger: scrollHero });
+    gsap.to('.hero__body', { y: -110, opacity: 0.15, ease: 'none', scrollTrigger: { ...scrollHero } });
+    gsap.to('.hero__shade', { opacity: 0.6, ease: 'none', scrollTrigger: { ...scrollHero } });
+
+    // títulos das seções: palavras sobem de dentro de uma máscara
+    $$('.sec-title').forEach((t) => {
+      t.removeAttribute('data-reveal');
+      t.setAttribute('data-split-scroll', '');
+      const s = SplitText.create(t, { type: 'words', mask: 'words', maskClass: 'split-mask' });
+      t.classList.add('is-split');
+      gsap.from(s.words, {
+        yPercent: 110, duration: 1.2, ease: 'expo.out', stagger: 0.08,
+        scrollTrigger: { trigger: t, start: 'top 88%', once: true },
+      });
+    });
+
+    // fotos verticais do "Sobre nós" com parallax sutil
+    $$('.strip img').forEach((img, i) => {
+      gsap.fromTo(img, { yPercent: -6 - i * 2 }, {
+        yPercent: 6 + i * 2, ease: 'none',
+        scrollTrigger: { trigger: '.strips', start: 'top bottom', end: 'bottom top', scrub: true },
+      });
+    });
+
+    window.addEventListener('load', () => ScrollTrigger.refresh());
+  }
+
   /* Remove a tela de abertura depois da cortina */
   function initLoader() {
     if (!hasLoader) return;
@@ -358,9 +431,17 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     initLoader();
+    if (G) {
+      window.gsap.registerPlugin(window.ScrollTrigger, window.SplitText);
+      initLenis();
+      initGsapScroll();
+      initGsapIntro();
+    } else {
+      setTimeout(playHeroVideo, (T0 + 0.2) * 1000);
+    }
     $('#year').textContent = new Date().getFullYear();
     initWhatsAppLinks();
-    initIntro();
+    if (!G) initIntro();
     initReveal();
     initMenu();
     initScrollUi();

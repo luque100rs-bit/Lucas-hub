@@ -16,12 +16,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Manrope:wght@400;500;600&display=swap">
-<link rel="preload" as="image" href="fotos/escada-em-l-madeira.jpg">
+<link rel="preload" as="image" href="video/escada-hero-poster.jpg">
 <link rel="stylesheet" href="assets/css/style.css">
 <script>
   (function () {
     var d = document.documentElement;
     d.classList.add('js');
+    if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) d.classList.add('gsap-on');
     // Abertura completa só na primeira visita da sessão e sem "reduzir movimento"
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var seen = false;
@@ -101,7 +102,9 @@
   <section class="hero" id="topo" aria-labelledby="hero-title">
     <div class="hero__card">
       <div class="hero__media">
-        <img src="fotos/escada-em-l-madeira.jpg" alt="Escada em L pré-moldada com degraus revestidos em madeira, instalada pela BL Escadas" width="960" height="1280" fetchpriority="high" data-parallax="0.08">
+        <video class="hero__video" id="hero-video" muted playsinline preload="auto" poster="video/escada-hero-poster.jpg" width="720" height="1280" aria-label="Animação de uma escada flutuante de madeira com um rastro de luz dourada subindo pelos degraus">
+          <source src="video/escada-hero.mp4" type="video/mp4">
+        </video>
       </div>
       <div class="hero__shade" aria-hidden="true"></div>
 
@@ -127,7 +130,7 @@
 
       <div class="hero__body">
         <p class="eyebrow" data-intro>Escadas pré-moldadas · Nova Iguaçu, RJ</p>
-        <h1 class="hero__title" id="hero-title" data-split>Sua escada pronta em dias, não em semanas.</h1>
+        <h1 class="hero__title" id="hero-title" data-split>Sua escada pronta em <em>dias</em>, não em semanas.</h1>
         <p class="hero__lead" data-intro>Flutuante, em L, reta ou caracol: a gente mede o seu vão, fabrica a escada de concreto sob medida e instala no local. Sem forma, sem escoramento e sem aquela obra molhada que atrasa todo o resto.</p>
         <div class="hero__actions" data-intro>
           <a class="btn btn--light" href="#catalogo">Escolher minha escada<svg class="btn__arrow"><use href="#i-arrow"/></svg></a>
@@ -136,7 +139,7 @@
       </div>
 
       <a class="hero__scroll" href="#sobre" data-intro aria-label="Rolar para Sobre nós"><span class="hero__scroll-line"></span>Role</a>
-      <p class="hero__meta" data-intro aria-hidden="true"><span class="hero__meta-line"></span>Escada em L · revestida em madeira</p>
+      <p class="hero__meta" data-intro aria-hidden="true"><span class="hero__meta-line"></span>Escadas sob medida</p>
     </div>
   </section>
 
@@ -478,6 +481,10 @@
   <button class="lb-btn lb-btn--next" id="lb-next" type="button" aria-label="Próxima foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 6l6 6-6 6"/></svg></button>
 </div>
 
+<script src="assets/vendor/gsap.min.js" defer></script>
+<script src="assets/vendor/ScrollTrigger.min.js" defer></script>
+<script src="assets/vendor/SplitText.min.js" defer></script>
+<script src="assets/vendor/lenis.min.js" defer></script>
 <script src="assets/js/main.js" defer></script>
 </body>
 </html>

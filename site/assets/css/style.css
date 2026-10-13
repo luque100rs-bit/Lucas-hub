@@ -16,7 +16,9 @@
   --wa: #25d366;
   --wa-ink: #06301a;
 
-  --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+  /* Para usar a fonte Falden: coloque o arquivo em assets/fonts/Falden.woff2
+     e descomente o @font-face no fim deste bloco. Ela passa a valer nos títulos. */
+  --serif: 'Falden', 'Cormorant Garamond', 'Times New Roman', serif;
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --wrap: 1240px;
@@ -26,6 +28,20 @@
   --ease: cubic-bezier(.22, 1, .36, 1);
   --ease-in-out: cubic-bezier(.65, 0, .35, 1);
 }
+
+/*
+@font-face {
+  font-family: 'Falden';
+  src: url('../fonts/Falden.woff2') format('woff2');
+  font-weight: 300 500;
+  font-display: swap;
+}
+*/
+
+/* Lenis (rolagem suave) */
+html.lenis, html.lenis body { height: auto; }
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+.lenis [data-lenis-prevent] { overscroll-behavior: contain; }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 96px; -webkit-text-size-adjust: 100%; }
@@ -149,14 +165,14 @@ body.is-locked { overflow: hidden; }
   padding: clamp(18px, 2.4vw, 28px) clamp(18px, 3.2vw, 44px) clamp(28px, 4.5vw, 56px);
 }
 .hero__media { position: absolute; inset: 0 0 0 36%; overflow: hidden; }
-.hero__media img { width: 100%; height: 115%; object-fit: cover; object-position: 50% 62%; transform-origin: 60% 50%; will-change: transform; }
+.hero__video { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; transform-origin: 50% 60%; will-change: transform; background: #1a1612; }
 .js { --t0: 0s; }
 .has-loader { --t0: 1.75s; }
 .js .hero__card { animation: cardIn 1.3s var(--ease) both; animation-delay: var(--t0); }
 @keyframes cardIn { from { transform: translateY(40px) scale(.94); border-radius: 48px; opacity: 0; } to { transform: none; opacity: 1; } }
 .js .hero__media { animation: mediaIn 1.7s var(--ease-in-out) both; animation-delay: calc(var(--t0) + .15s); }
 @keyframes mediaIn { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
-.js .hero__media img { animation: heroZoom 2.6s var(--ease) both; animation-delay: calc(var(--t0) + .15s); }
+.js .hero__video { animation: heroZoom 2.6s var(--ease) both; animation-delay: calc(var(--t0) + .15s); }
 @keyframes heroZoom { from { transform: scale(1.22); filter: brightness(.55); } to { transform: scale(1); filter: brightness(1); } }
 /* brilho quente que passa uma vez pelos degraus */
 .hero__media::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 38%, rgba(255, 214, 170, .22) 50%, transparent 62%); background-size: 260% 100%; background-position: 130% 0; }
@@ -208,6 +224,7 @@ body.is-locked { overflow: hidden; }
 .hero__icons { display: flex; gap: 8px; }
 
 .hero__body { position: relative; z-index: 2; align-self: end; max-width: 640px; padding-top: 72px; display: grid; gap: 26px; }
+.hero__title em { font-style: italic; color: var(--accent-2); }
 .hero__title { font-family: var(--serif); font-weight: 300; font-size: clamp(2.9rem, 6.4vw, 5.6rem); line-height: .98; letter-spacing: -.015em; }
 .hero__lead { color: var(--text-2); font-size: 1.05rem; max-width: 50ch; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
@@ -231,7 +248,7 @@ body.is-locked { overflow: hidden; }
   .hero { padding: 10px 10px 0; }
   .hero__card { border-radius: 22px; min-height: calc(100svh - 20px); padding: 16px 16px 28px; }
   .hero__media { inset: 0; }
-  .hero__media img { object-position: 50% 40%; }
+  .hero__video { object-position: 50% 45%; }
   .hero__shade { background: linear-gradient(180deg, rgba(17, 17, 19, .55) 0%, rgba(17, 17, 19, .1) 28%, rgba(17, 17, 19, .7) 52%, #111113 78%); }
   .hero__icons .icon-btn:first-child { display: none; }
   .hero__body { gap: 16px; padding-top: 30vh; }
@@ -567,3 +584,14 @@ body.is-locked { overflow: hidden; }
   .js [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
   .js [data-reveal] img { transform: none !important; }
 }
+
+/* ===== Quando o GSAP está ativo, ele comanda a abertura no lugar do CSS ===== */
+.gsap-on .hero__card, .gsap-on .hero__media, .gsap-on .hero__video, .gsap-on .hero__media::after,
+.gsap-on [data-intro] { animation: none !important; }
+.gsap-on .hero__media::after { opacity: 0; }
+.gsap-on .hero__title { visibility: hidden; }
+.gsap-on .hero__title.is-split { visibility: visible; }
+/* máscaras criadas pelo SplitText: espaço extra pra não cortar ç, g, p */
+.hero__title > div, .sec-title > div { padding: 0 .02em .14em; margin-bottom: -.14em; vertical-align: top; }
+.gsap-on .sec-title[data-split-scroll] { visibility: hidden; }
+.gsap-on .sec-title[data-split-scroll].is-split { visibility: visible; }
