@@ -8,6 +8,8 @@
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+  const hasLoader = document.documentElement.classList.contains('has-loader');
+  const T0 = hasLoader ? 1.75 : 0; // segundos até a cortina de abertura terminar
   const waUrl = (text) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 
   /* Links de WhatsApp já com mensagem inicial */
@@ -18,7 +20,7 @@
   /* Entrada do topo: título palavra por palavra, depois o resto em sequência */
   function initIntro() {
     const title = $('[data-split]');
-    let delay = 0.35;
+    let delay = T0 + 0.55;
     if (title && !reduceMotion) {
       const words = title.textContent.trim().split(/\s+/);
       title.setAttribute('aria-label', title.textContent.trim());
@@ -40,7 +42,7 @@
     intro.forEach((el) => {
       // A navegação entra primeiro; textos e botões depois do título
       const isNav = el.classList.contains('hero__nav');
-      const d = isNav ? 0.15 : (el.classList.contains('eyebrow') ? 0.25 : delay + 0.1 + intro.indexOf(el) * 0.08);
+      const d = isNav ? T0 + 0.35 : (el.classList.contains('eyebrow') ? T0 + 0.45 : delay + 0.1 + intro.indexOf(el) * 0.08);
       el.style.setProperty('--intro-delay', `${d.toFixed(2)}s`);
     });
   }
@@ -177,7 +179,7 @@
     setTimeout(() => {
       if (heroImg && parallaxOn()) heroImg.style.animation = 'none';
       frame();
-    }, reduceMotion ? 0 : 2700);
+    }, reduceMotion ? 0 : (T0 + 2.8) * 1000);
     frame();
   }
 
@@ -344,7 +346,18 @@
     });
   }
 
+  /* Remove a tela de abertura depois da cortina */
+  function initLoader() {
+    if (!hasLoader) return;
+    const done = () => {
+      document.documentElement.classList.add('loader-done');
+      $('#loader')?.remove();
+    };
+    setTimeout(done, (T0 + 0.8) * 1000);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    initLoader();
     $('#year').textContent = new Date().getFullYear();
     initWhatsAppLinks();
     initIntro();

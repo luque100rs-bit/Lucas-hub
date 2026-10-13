@@ -168,8 +168,49 @@ body.is-locked { overflow: hidden; }
 }
 .hero__media { position: absolute; inset: 0 0 0 36%; overflow: hidden; }
 .hero__media img { width: 100%; height: 115%; object-fit: cover; object-position: 50% 62%; transform-origin: 60% 50%; will-change: transform; }
-.js .hero__media img { animation: heroZoom 2.6s var(--ease) both; }
-@keyframes heroZoom { from { transform: scale(1.14); filter: brightness(.6); } to { transform: scale(1); filter: brightness(1); } }
+.js { --t0: 0s; }
+.has-loader { --t0: 1.75s; }
+.js .hero__card { animation: cardIn 1.3s var(--ease) both; animation-delay: var(--t0); }
+@keyframes cardIn { from { transform: translateY(40px) scale(.94); border-radius: 48px; opacity: 0; } to { transform: none; opacity: 1; } }
+.js .hero__media { animation: mediaIn 1.7s var(--ease-in-out) both; animation-delay: calc(var(--t0) + .15s); }
+@keyframes mediaIn { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+.js .hero__media img { animation: heroZoom 2.6s var(--ease) both; animation-delay: calc(var(--t0) + .15s); }
+@keyframes heroZoom { from { transform: scale(1.22); filter: brightness(.55); } to { transform: scale(1); filter: brightness(1); } }
+/* brilho quente que passa uma vez pelos degraus */
+.hero__media::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 38%, rgba(255, 214, 170, .22) 50%, transparent 62%); background-size: 260% 100%; background-position: 130% 0; }
+.js .hero__media::after { animation: sheen 2.4s var(--ease-in-out) both; animation-delay: calc(var(--t0) + 1.3s); }
+@keyframes sheen { to { background-position: -30% 0; } }
+
+/* Indicador de rolagem */
+.hero__scroll { position: absolute; z-index: 2; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: clamp(24px, 3.4vw, 40px); display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: .64rem; letter-spacing: .28em; text-transform: uppercase; color: var(--text-2); }
+.hero__scroll-line { position: relative; width: 1px; height: 46px; background: var(--line-2); overflow: hidden; }
+.hero__scroll-line::after { content: ''; position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: var(--accent-2); animation: scrollCue 2.2s var(--ease-in-out) infinite; animation-delay: calc(var(--t0) + 2.4s); }
+@keyframes scrollCue { 0% { top: -40%; } 70%, 100% { top: 110%; } }
+.hero__scroll:hover { color: var(--text); }
+
+/* Tela de abertura */
+.loader { display: none; }
+.has-loader .loader {
+  position: fixed; inset: 0; z-index: 300;
+  display: grid; place-items: center;
+  background: var(--bg);
+  clip-path: inset(0 0 0 0);
+  animation: loaderOut 1s var(--ease-in-out) 1.65s forwards;
+}
+@keyframes loaderOut { to { clip-path: inset(0 0 100% 0); visibility: hidden; } }
+.loader__inner { display: grid; justify-items: center; gap: 14px; animation: loaderFade .5s ease 1.45s forwards; }
+@keyframes loaderFade { to { opacity: 0; transform: translateY(-14px); } }
+.loader__stair { width: 92px; height: auto; margin-bottom: 8px; }
+.loader__stair path { stroke: var(--accent); stroke-width: 3; stroke-linecap: square; stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawStair 1.15s cubic-bezier(.7, 0, .3, 1) .15s forwards; }
+@keyframes drawStair { to { stroke-dashoffset: 0; } }
+.loader__word { font-family: var(--serif); font-weight: 300; font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1; letter-spacing: .5em; margin-right: -.5em; opacity: 0; animation: wordIn 1.1s var(--ease) .45s forwards; }
+@keyframes wordIn { to { opacity: 1; letter-spacing: .14em; margin-right: -.14em; } }
+.loader__sub { font-size: .62rem; letter-spacing: .3em; text-transform: uppercase; color: var(--text-3); opacity: 0; animation: introIn .8s var(--ease) .8s forwards; }
+.loader__bar { width: 140px; height: 1px; background: var(--line-2); margin-top: 14px; overflow: hidden; }
+.loader__bar span { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; animation: barFill 1.3s var(--ease-in-out) .1s forwards; }
+@keyframes barFill { to { transform: scaleX(1); } }
+.has-loader body { overflow: hidden; }
+.has-loader.loader-done body { overflow: auto; }
 .hero__shade {
   position: absolute; inset: 0; pointer-events: none;
   background:
@@ -214,7 +255,7 @@ body.is-locked { overflow: hidden; }
   .hero__body { gap: 16px; padding-top: 30vh; }
   .hero__lead { font-size: .98rem; }
   .hero__actions .btn { flex: 1 1 100%; }
-  .hero__meta { display: none; }
+  .hero__meta, .hero__scroll { display: none; }
   .brand__name small { display: none; }
 }
 
@@ -539,16 +580,38 @@ body.is-locked { overflow: hidden; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
   .word > span { transform: none; }
   .js [data-intro] { opacity: 1; transform: none; }
+  .loader { display: none !important; }
+  .js .hero__card, .js .hero__media { animation: none; clip-path: none; }
   .js [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
   .js [data-reveal] img { transform: none !important; }
 }
 
 </style>
-<script>document.documentElement.classList.add('js');</script>
+<script>
+  (function () {
+    var d = document.documentElement;
+    d.classList.add('js');
+    // Abertura completa só na primeira visita da sessão e sem "reduzir movimento"
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var seen = false;
+    try { seen = sessionStorage.getItem('bl-intro') === '1'; sessionStorage.setItem('bl-intro', '1'); } catch (e) {}
+    if (!reduce && !seen) d.classList.add('has-loader');
+  })();
+</script>
 </head>
 <body>
 
 <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<!-- Abertura: a escada da marca é desenhada e a tela sobe como uma cortina -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__inner">
+    <svg class="loader__stair" viewBox="0 0 132 100" fill="none"><path pathLength="1" d="M6 94h24V74h24V54h24V34h24V14h24"/></svg>
+    <p class="loader__word">BL Escadas</p>
+    <p class="loader__sub">Pré-moldadas · Nova Iguaçu</p>
+    <span class="loader__bar"><span></span></span>
+  </div>
+</div>
 
 <!-- Ícones reutilizados -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -641,6 +704,7 @@ body.is-locked { overflow: hidden; }
         </div>
       </div>
 
+      <a class="hero__scroll" href="#sobre" data-intro aria-label="Rolar para Sobre nós"><span class="hero__scroll-line"></span>Role</a>
       <p class="hero__meta" data-intro aria-hidden="true"><span class="hero__meta-line"></span>Escada em L · revestida em madeira</p>
     </div>
   </section>
@@ -997,6 +1061,8 @@ body.is-locked { overflow: hidden; }
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+  const hasLoader = document.documentElement.classList.contains('has-loader');
+  const T0 = hasLoader ? 1.75 : 0; // segundos até a cortina de abertura terminar
   const waUrl = (text) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 
   /* Links de WhatsApp já com mensagem inicial */
@@ -1007,7 +1073,7 @@ body.is-locked { overflow: hidden; }
   /* Entrada do topo: título palavra por palavra, depois o resto em sequência */
   function initIntro() {
     const title = $('[data-split]');
-    let delay = 0.35;
+    let delay = T0 + 0.55;
     if (title && !reduceMotion) {
       const words = title.textContent.trim().split(/\s+/);
       title.setAttribute('aria-label', title.textContent.trim());
@@ -1029,7 +1095,7 @@ body.is-locked { overflow: hidden; }
     intro.forEach((el) => {
       // A navegação entra primeiro; textos e botões depois do título
       const isNav = el.classList.contains('hero__nav');
-      const d = isNav ? 0.15 : (el.classList.contains('eyebrow') ? 0.25 : delay + 0.1 + intro.indexOf(el) * 0.08);
+      const d = isNav ? T0 + 0.35 : (el.classList.contains('eyebrow') ? T0 + 0.45 : delay + 0.1 + intro.indexOf(el) * 0.08);
       el.style.setProperty('--intro-delay', `${d.toFixed(2)}s`);
     });
   }
@@ -1166,7 +1232,7 @@ body.is-locked { overflow: hidden; }
     setTimeout(() => {
       if (heroImg && parallaxOn()) heroImg.style.animation = 'none';
       frame();
-    }, reduceMotion ? 0 : 2700);
+    }, reduceMotion ? 0 : (T0 + 2.8) * 1000);
     frame();
   }
 
@@ -1333,7 +1399,18 @@ body.is-locked { overflow: hidden; }
     });
   }
 
+  /* Remove a tela de abertura depois da cortina */
+  function initLoader() {
+    if (!hasLoader) return;
+    const done = () => {
+      document.documentElement.classList.add('loader-done');
+      $('#loader')?.remove();
+    };
+    setTimeout(done, (T0 + 0.8) * 1000);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    initLoader();
     $('#year').textContent = new Date().getFullYear();
     initWhatsAppLinks();
     initIntro();

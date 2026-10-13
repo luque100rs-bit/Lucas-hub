@@ -18,11 +18,31 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Manrope:wght@400;500;600&display=swap">
 <link rel="preload" as="image" href="fotos/escada-em-l-madeira.jpg">
 <link rel="stylesheet" href="assets/css/style.css">
-<script>document.documentElement.classList.add('js');</script>
+<script>
+  (function () {
+    var d = document.documentElement;
+    d.classList.add('js');
+    // Abertura completa só na primeira visita da sessão e sem "reduzir movimento"
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var seen = false;
+    try { seen = sessionStorage.getItem('bl-intro') === '1'; sessionStorage.setItem('bl-intro', '1'); } catch (e) {}
+    if (!reduce && !seen) d.classList.add('has-loader');
+  })();
+</script>
 </head>
 <body>
 
 <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<!-- Abertura: a escada da marca é desenhada e a tela sobe como uma cortina -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__inner">
+    <svg class="loader__stair" viewBox="0 0 132 100" fill="none"><path pathLength="1" d="M6 94h24V74h24V54h24V34h24V14h24"/></svg>
+    <p class="loader__word">BL Escadas</p>
+    <p class="loader__sub">Pré-moldadas · Nova Iguaçu</p>
+    <span class="loader__bar"><span></span></span>
+  </div>
+</div>
 
 <!-- Ícones reutilizados -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -115,6 +135,7 @@
         </div>
       </div>
 
+      <a class="hero__scroll" href="#sobre" data-intro aria-label="Rolar para Sobre nós"><span class="hero__scroll-line"></span>Role</a>
       <p class="hero__meta" data-intro aria-hidden="true"><span class="hero__meta-line"></span>Escada em L · revestida em madeira</p>
     </div>
   </section>
