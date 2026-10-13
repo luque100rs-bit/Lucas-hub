@@ -369,6 +369,8 @@
   /* Abertura do topo com GSAP */
   function initGsapIntro() {
     const { gsap, SplitText } = window;
+    // o vídeo tem autoplay pra funcionar sem scripts; aqui ele espera a foto se abrir
+    if (heroVideo) { heroVideo.pause(); heroVideo.currentTime = 0; }
     const title = $('#hero-title');
     const split = SplitText.create(title, { type: 'words,chars', mask: 'words', maskClass: 'split-mask' });
     title.classList.add('is-split');
