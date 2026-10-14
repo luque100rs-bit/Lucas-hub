@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #0a0a0b;
+  --color-bg2: #111113;
+  --color-surface: #151518;
+  --color-ink: #ece8e1;
+  --color-ink2: #b4aea5;
+  --color-ink3: #8a857d;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line2: rgb(255 255 255 / 0.16);
+  --color-accent: #c9a57b;
+  --color-accent2: #e2c49d;
+  --color-wa: #25d366;
+
+  --font-serif: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --animate-marquee: marquee var(--duration, 40s) linear infinite;
+  --animate-shimmer: shimmer 3.4s ease-in-out infinite;
+  --animate-beam: beam var(--beam-duration, 12s) linear infinite;
+  --animate-pulse-ring: pulse-ring 2.6s cubic-bezier(0.22, 1, 0.36, 1) 3;
+  --animate-cue: cue 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-100% - var(--gap, 3rem))); }
+  }
+  @keyframes shimmer {
+    0%, 55% { transform: translateX(-130%) skewX(-18deg); }
+    100% { transform: translateX(330%) skewX(-18deg); }
+  }
+  @keyframes beam {
+    to { offset-distance: 100%; }
+  }
+  @keyframes pulse-ring {
+    from { transform: scale(1); opacity: 0.7; }
+    to { transform: scale(1.35); opacity: 0; }
+  }
+  @keyframes cue {
+    0% { top: -40%; }
+    70%, 100% { top: 110%; }
+  }
+}
+
+@layer base {
+  html {
+    scroll-padding-top: 96px;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: var(--color-accent);
+    color: #111;
+  }
+  :focus-visible {
+    outline: 1.5px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  button { cursor: pointer; }
+  img, video, svg { display: block; max-width: 100%; }
+}
+
+/* Lenis (rolagem suave) */
+html.lenis, html.lenis body { height: auto; }
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+.lenis [data-lenis-prevent] { overscroll-behavior: contain; }
+body.is-locked { overflow: hidden; }
+
+/* Feixe que percorre a borda de um cartão (estilo Border Beam) */
+.border-beam {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: var(--beam-width, 1px) solid transparent;
+  -webkit-mask-clip: padding-box, border-box;
+  mask-clip: padding-box, border-box;
+  -webkit-mask-composite: xor;
+  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(transparent, transparent), linear-gradient(#000, #000);
+  mask-image: linear-gradient(transparent, transparent), linear-gradient(#000, #000);
+}
+.border-beam::after {
+  content: '';
+  position: absolute;
+  aspect-ratio: 1;
+  width: var(--beam-size, 120px);
+  background: linear-gradient(to left, var(--beam-from, #e2c49d), var(--beam-to, #c9a57b), transparent);
+  offset-anchor: 90% 50%;
+  offset-path: rect(0 auto auto 0 round var(--beam-size, 120px));
+  animation: var(--animate-beam);
+  animation-delay: var(--beam-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .border-beam::after, .marquee-track { animation: none !important; }
+}
